@@ -1,11 +1,9 @@
 #pragma once
 
 // derived classes
-class Frame;
 class wxCamPanel;
 
 // -- application --
-
 class App : public wxApp
 {
 public:
@@ -14,8 +12,7 @@ public:
 
 wxDECLARE_APP(App);
 
-// Frame
-
+// -- Frame --
 class Frame : public wxFrame
 {
 public:
@@ -23,10 +20,18 @@ public:
 
 protected:
   void OnChar(wxKeyEvent& event);
+  void OnToolLeftClick(wxCommandEvent& event);
 
 private:
-  wxAuiToolBar* toolbar;
-  wxCamPanel* campanel;
+  enum Menu
+  {
+    LIVE,
+    REGIST,
+    STATUS,
+    SETTING,
+  };
+
+  wxCamPanel* camPanel;
 
 private:
   wxDECLARE_DYNAMIC_CLASS(Frame);

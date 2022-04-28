@@ -42,11 +42,7 @@ wxCamPanel::wxCamPanel(wxWindow* parent, wxWindowID id, const wxPoint& pos, cons
   : wxPanel(parent, id, pos, size, wxNO_BORDER)
   , timer(this, TIMER_ID)
 {
-  SetBackgroundColour(*wxLIGHT_GREY);
-
-#if wxUSE_LIBPNG
-  wxImage::AddHandler(new wxPNGHandler);
-#endif
+  SetBackgroundColour(wxColour(31, 31, 31));
 
   wxImage image;
   if (!image.LoadFile("horse.png"))
