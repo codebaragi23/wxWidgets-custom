@@ -21,14 +21,16 @@
 // Under Windows, change this to 1
 // to use wxGenericDragImage
 
-#define wxUSE_GENERIC_DRAGIMAGE 0
-
 #include "app.h"
-#include "campanel.h"
+#include "panels.h"
 
 #ifndef wxHAS_IMAGES_IN_RESOURCES
 #include "sample.xpm"
 #endif
+
+#include <opencv2/opencv.hpp>
+#include <opencv2/imgproc.hpp>
+#include <opencv2/videoio.hpp>
 
 // main program
 wxIMPLEMENT_APP(App);
@@ -38,57 +40,75 @@ bool App::OnInit()
   if (!wxApp::OnInit())
     return false;
 
-#if wxUSE_LIBPNG
   wxImage::AddHandler(new wxPNGHandler);
-#endif
+  wxImage::AddHandler(new wxJPEGHandler);
 
-  (new Frame())->Show();
+  auto frame = new Frame(NULL, wxID_ANY, "wxWidgets-custom", wxDefaultPosition, wxSize(1920 / 2, 2160 / 2));
+  frame->Show();
   return true;
 }
 
 // Frame
-wxIMPLEMENT_DYNAMIC_CLASS(Frame, wxFrame);
-
 wxBEGIN_EVENT_TABLE(Frame, wxFrame)
 EVT_CHAR_HOOK(Frame::OnChar)
-EVT_MENU(wxID_ANY, Frame::OnToolLeftClick)
+EVT_MENU(wxID_ANY, Frame::OnToolSelect)
 wxEND_EVENT_TABLE()
 
-Frame::Frame()
-  : wxFrame((wxFrame*)NULL, wxID_ANY, "App")
+Frame::Frame(wxWindow* parent, const wxWindowID id, const wxString& title,
+  const wxPoint& pos, const wxSize& size, const long style)
+  : wxFrame(parent, id, title, pos, size, style)
 {
   // set frame icon
   SetIcon(wxICON(sample));
 
-  SetToolBar(NULL);
   // #if wxUSE_STATUSBAR
   //   CreateStatusBar(2);
   //   int widths[] = { -1, 100 };
   //   SetStatusWidths(2, widths);
   // #endif // wxUSE_STATUSBAR
 
-  wxToolBar* toolBar = CreateToolBar(wxTB_FLAT | wxTB_DOCKABLE | wxTB_VERTICAL, wxID_ANY);
-  toolBar->SetToolBitmapSize(wxSize(32, 32));
+  auto toolBar = CreateToolBar(wxTB_FLAT | wxTB_NODIVIDER | wxTB_VERTICAL/* | wxTB_TEXT*/, wxID_ANY);
   toolBar->SetBackgroundColour(wxColour(50, 50, 50));
-  toolBar->SetMargins(16, 16);
-  toolBar->AddRadioTool(LIVE, "Live", wxImage("bitmaps/play.png"));
-  toolBar->AddRadioTool(REGIST, "Regist", wxImage("bitmaps/regist.png"));
-  toolBar->AddRadioTool(STATUS, "Status", wxImage("bitmaps/status.png"));
-  toolBar->AddRadioTool(SETTING, "Setting", wxImage("bitmaps/setting.png"));
+  toolBar->AddRadioTool(LIVE, "Live", wxImage("bitmaps/play_24.png"));
+  toolBar->AddRadioTool(REGIST, "Regist", wxImage("bitmaps/regist_24.png"));
+  toolBar->AddRadioTool(STATUS, "Status", wxImage("bitmaps/status_24.png"));
+  toolBar->AddRadioTool(SETTING, "Setting", wxImage("bitmaps/setting_24.png"));
   {
-    wxToolBarToolBase* const tool = toolBar->CreateSeparator();
-    tool->MakeStretchable();
+    auto tool = toolBar->CreateSeparator();  tool->MakeStretchable();
     toolBar->InsertTool(toolBar->GetToolsCount() - 1, tool);
   }
   toolBar->Realize();
 
-  //toolBar->ToggleTool(SETTING, true);
+  auto sz = new wxBoxSizer(wxVERTICAL); SetSizer(sz);
 
-  //toolBar->ToggleWindowStyle();
-  //toolBar->AddStretchableSpace();
+  cv::VideoCapture cap("/dev/video0");
+  cap.set(cv::CAP_PROP_FOURCC, cv::VideoWriter::fourcc('M', 'J', 'P', 'G'));
+  cap.set(cv::CAP_PROP_FRAME_WIDTH, 640);
+  cap.set(cv::CAP_PROP_FRAME_HEIGHT, 480);
+  cap.set(cv::CAP_PROP_FPS, 30);
+  {
+    // auto test = new wxPanel(this, wxID_ANY);
+    // test->SetBackgroundColour(wxColour(50, 50, 50));
+    //new wxTextCtrl(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE | wxTE_READONLY);
+    auto panel = new wxCamPanel(this, wxID_ANY);
+    panel->SetCap(cap);
+    sz->Add(panel, wxSizerFlags(1).Expand());
+  }
 
-  camPanel = new wxCamPanel(this, wxID_ANY, wxPoint(0, 0), wxSize(640, 480));
-  camPanel->OpenCam("/dev/video0");
+  {
+    auto panel = new wxRegistPanel(this, wxID_ANY);
+    panel->SetCap(cap);
+    sz->Add(panel, wxSizerFlags(1).Expand());
+  }
+  {
+    auto panel = new wxStatusPanel(this, wxID_ANY);
+    sz->Add(panel, wxSizerFlags(1).Expand());
+  }
+  {
+    auto panel = new wxPanel(this, wxID_ANY);
+    sz->Add(panel, wxSizerFlags(1).Expand());
+  }
+  toolBar->OnLeftClick(2, true);
 }
 
 
@@ -107,18 +127,21 @@ void Frame::OnChar(wxKeyEvent& event)
   default:
     break;
   }
+
+  event.Skip();
 }
 
-void Frame::OnToolLeftClick(wxCommandEvent& event)
+void Frame::OnToolSelect(wxCommandEvent& event)
 {
   printf("Clicked on tool %d\n", event.GetId());
-  switch (event.GetId())
-  {
-  case LIVE:
-    /* code */
-    break;
 
-  default:
-    break;
-  }
+  int toolid = event.GetId();
+  GetToolBar()->ToggleTool(toolid, true);
+
+  auto sz = GetSizer();
+  sz->ShowItems(false);
+  sz->Show(toolid, true);
+  sz->Layout();
+
+  //GetToolBar()->SetToolNormalBitmap(event.GetId(), wxImage(""));
 }

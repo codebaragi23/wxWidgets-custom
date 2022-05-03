@@ -15,13 +15,6 @@ wxDECLARE_APP(App);
 // -- Frame --
 class Frame : public wxFrame
 {
-public:
-  Frame();
-
-protected:
-  void OnChar(wxKeyEvent& event);
-  void OnToolLeftClick(wxCommandEvent& event);
-
 private:
   enum Menu
   {
@@ -29,11 +22,16 @@ private:
     REGIST,
     STATUS,
     SETTING,
+
+    MENU_CNT
   };
 
-  wxCamPanel* camPanel;
+public:
+  Frame(wxWindow* parent, const wxWindowID id, const wxString& title,
+    const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize, long style = wxDEFAULT_FRAME_STYLE);
 
 private:
-  wxDECLARE_DYNAMIC_CLASS(Frame);
+  void OnChar(wxKeyEvent& event);
+  void OnToolSelect(wxCommandEvent& event);
   wxDECLARE_EVENT_TABLE();
 };
