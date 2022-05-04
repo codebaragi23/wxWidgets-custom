@@ -69,7 +69,7 @@ Frame::Frame(wxWindow* parent, const wxWindowID id, const wxString& title,
 
   auto toolBar = CreateToolBar(wxTB_FLAT | wxTB_NODIVIDER | wxTB_VERTICAL/* | wxTB_TEXT*/, wxID_ANY);
   toolBar->SetBackgroundColour(wxColour(50, 50, 50));
-  toolBar->AddRadioTool(LIVE, "Live", wxImage("bitmaps/play_24.png"));
+  toolBar->AddRadioTool(LIVE, "Live", wxImage("bitmaps/live_24.png"));
   toolBar->AddRadioTool(REGIST, "Regist", wxImage("bitmaps/regist_24.png"));
   toolBar->AddRadioTool(STATUS, "Status", wxImage("bitmaps/status_24.png"));
   toolBar->AddRadioTool(SETTING, "Setting", wxImage("bitmaps/setting_24.png"));
@@ -108,7 +108,7 @@ Frame::Frame(wxWindow* parent, const wxWindowID id, const wxString& title,
     auto panel = new wxPanel(this, wxID_ANY);
     sz->Add(panel, wxSizerFlags(1).Expand());
   }
-  toolBar->OnLeftClick(2, true);
+  toolBar->OnLeftClick(1, true);
 }
 
 
@@ -133,7 +133,7 @@ void Frame::OnChar(wxKeyEvent& event)
 
 void Frame::OnToolSelect(wxCommandEvent& event)
 {
-  printf("Clicked on tool %d\n", event.GetId());
+  wxPrintf("Clicked on tool %d\n", event.GetId());
 
   int toolid = event.GetId();
   GetToolBar()->ToggleTool(toolid, true);
